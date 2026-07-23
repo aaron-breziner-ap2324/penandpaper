@@ -41,7 +41,9 @@ export default async function Home() {
             className="rounded-full border-[3px] border-black bg-white"
           />
           <span className="btn-pop-sm rounded-full bg-white px-4 py-1 text-sm font-semibold text-ink">
-            ¡Más de {featuredTutors.length} tutores esperándote! 👋
+            {featuredTutors.length > 0
+              ? `¡Más de ${featuredTutors.length} tutores esperándote! 👋`
+              : "¡Estamos armando la red de tutores! 👋"}
           </span>
           <h1 className="font-display text-4xl font-bold leading-tight text-ink sm:text-6xl">
             Agenda ya
@@ -104,19 +106,21 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-16">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-3xl font-bold text-ink">Tutores destacados</h2>
-          <Link href="/tutores" className="font-semibold text-secondary-dark hover:underline">
-            Ver todos →
-          </Link>
-        </div>
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredTutors.slice(0, 6).map((tutor) => (
-            <TutorCard key={tutor.id} tutor={tutor} />
-          ))}
-        </div>
-      </section>
+      {featuredTutors.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 py-16">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-3xl font-bold text-ink">Tutores destacados</h2>
+            <Link href="/tutores" className="font-semibold text-secondary-dark hover:underline">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredTutors.slice(0, 6).map((tutor) => (
+              <TutorCard key={tutor.id} tutor={tutor} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="px-5 py-16">
         <div className="card-shadow mx-auto flex max-w-4xl flex-col items-center gap-4 rounded-3xl bg-secondary px-8 py-12 text-center text-white">
