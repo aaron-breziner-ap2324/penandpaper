@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fff8e7;
+  --foreground: #241a10;
+
+  /* Pen & Paper palette */
+  --color-primary: #e04faf;       /* pink eraser */
+  --color-primary-dark: #b93690;
+  --color-secondary: #3fa9cc;      /* pencil blue */
+  --color-secondary-dark: #2a7f9c;
+  --color-accent: #fabb2a;        /* pencil gold band */
+  --color-accent-dark: #d99a0f;
+  --color-success: #3fa9cc;
+  --color-info: #3fa9cc;
+  --color-cream: #fff8e7;
+  --color-tan: #ffecc4;
+  --color-ink: #241a10;
+  --color-yellow: #f4ed65;
+  --color-brown: #4d2b1b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-dark: var(--color-secondary-dark);
+  --color-accent: var(--color-accent);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-success: var(--color-success);
+  --color-info: var(--color-info);
+  --color-cream: var(--color-cream);
+  --color-tan: var(--color-tan);
+  --color-ink: var(--color-ink);
+  --color-yellow: var(--color-yellow);
+  --color-brown: var(--color-brown);
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-fredoka);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+}
+
+/* Fondo tipo hoja rayada, para secciones decorativas (hero, vacíos) */
+.paper-lines {
+  background-color: var(--color-yellow);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 35px,
+    rgba(36, 26, 16, 0.12) 36px
+  );
+}
+
+/* Tarjetas estilo "recorte de papel": borde negro + sombra dura */
+.card-shadow {
+  border: 2.5px solid #000;
+  box-shadow: 5px 5px 0 #000;
+}
+
+/* Botones estilo doodle: se "presionan" al hacer click/hover */
+.btn-pop {
+  border: 2.5px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.btn-pop:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+.btn-pop:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #000;
+}
+
+.btn-pop-sm {
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.btn-pop-sm:hover {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 #000;
+}
+.btn-pop-sm:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #000;
+}

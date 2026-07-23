@@ -1,0 +1,123 @@
+// Esquema de base de datos para la Red de Tutores
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum Modality {
+  ONSITE
+  VIRTUAL
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(STUDENT)
+  isAdmin       Boolean  @default(false)
+  avatarColor   String   @default("#6C5CE7")
+  createdAt     DateTime @default(now())
+
+  tutorProfile      TutorProfile?
+  bookingsAsStudent Booking[]      @relation("StudentBookings")
+  reviewsWritten    Review[]       @relation("ReviewAuthor")
+}
+
+model Subject {
+  id    String @id @default(cuid())
+  name  String @unique
+  emoji String @default("📘")
+
+  tutors TutorSubject[]
+}
+
+model TutorProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline    String
+  bio         String
+  photoUrl    String?
+  yearsExp    Int      @default(0)
+  online      Boolean  @default(true)
+  city        String?
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  subjectLinks TutorSubject[]
+  bookings Booking[]      @relation("TutorBookings")
+  reviews  Review[]       @relation("TutorReviews")
+  availability Availability[]
+}
+
+model TutorSubject {
+  id             String       @id @default(cuid())
+  tutorProfileId String
+  subjectId      String
+  tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+  subject        Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorProfileId, subjectId])
+}
+
+model Availability {
+  id             String       @id @default(cuid())
+  tutorProfileId String
+  tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+  dayOfWeek      Int
+  startHour      Int
+  endHour        Int
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  studentId      String
+  student        User          @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
+  tutorProfileId String
+  tutorProfile   TutorProfile  @relation("TutorBookings", fields: [tutorProfileId], references: [id], onDelete: Cascade)
+  subjectName    String
+  date           DateTime
+  durationMin    Int           @default(60)
+  price          Int
+  status         BookingStatus @default(PENDING)
+  modality       Modality      @default(VIRTUAL)
+  location       String?
+  meetLink       String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+
+  review Review?
+}
+
+model Review {
+  id             String       @id @default(cuid())
+  bookingId      String       @unique
+  booking        Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  tutorProfileId String
+  tutorProfile   TutorProfile @relation("TutorReviews", fields: [tutorProfileId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  rating         Int
+  comment        String?
+  createdAt      DateTime     @default(now())
+}
+
+// Modelo auxiliar para relación implícita many-to-many (Subject <-> TutorProfile) usada arriba
