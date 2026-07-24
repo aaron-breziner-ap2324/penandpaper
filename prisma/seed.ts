@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -22,20 +21,6 @@ async function main() {
       create: s,
     });
   }
-
-  console.log("Sembrando cuenta de administrador...");
-  const adminPasswordHash = await bcrypt.hash("PenPaper2026!", 10);
-  await prisma.user.upsert({
-    where: { email: "aaronbreziner@gmail.com" },
-    update: { isAdmin: true },
-    create: {
-      name: "Aaron Breziner",
-      email: "aaronbreziner@gmail.com",
-      passwordHash: adminPasswordHash,
-      role: "STUDENT",
-      isAdmin: true,
-    },
-  });
 
   console.log("Listo!");
 }
