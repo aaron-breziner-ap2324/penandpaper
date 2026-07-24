@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { sendBookingConfirmedEmail, sendBookingCancelledEmail } from "@/lib/email";
 
 const schema = z.object({
   status: z.enum(["CONFIRMED", "CANCELLED", "COMPLETED"]),
@@ -25,7 +26,7 @@ export async function PATCH(
   const { id } = await params;
   const booking = await prisma.booking.findUnique({
     where: { id },
-    include: { tutorProfile: true },
+    include: { tutorProfile: { include: { user: true } }, student: true },
   });
 
   if (!booking) {
@@ -56,6 +57,53 @@ export async function PATCH(
     where: { id },
     data: { status: parsed.data.status },
   });
+
+  const studentName = booking.student.name;
+  const tutorName = booking.tutorProfile.user.name;
+
+  if (parsed.data.status === "CONFIRMED") {
+    await Promise.all([
+      sendBookingConfirmedEmail({
+        toEmail: booking.student.email,
+        toName: studentName,
+        otherName: tutorName,
+        subjectName: booking.subjectName,
+        date: booking.date,
+        modality: booking.modality,
+        location: booking.location,
+        meetLink: booking.meetLink,
+      }),
+      sendBookingConfirmedEmail({
+        toEmail: booking.tutorProfile.user.email,
+        toName: tutorName,
+        otherName: studentName,
+        subjectName: booking.subjectName,
+        date: booking.date,
+        modality: booking.modality,
+        location: booking.location,
+        meetLink: booking.meetLink,
+      }),
+    ]);
+  }
+
+  if (parsed.data.status === "CANCELLED") {
+    await Promise.all([
+      sendBookingCancelledEmail({
+        toEmail: booking.student.email,
+        toName: studentName,
+        otherName: tutorName,
+        subjectName: booking.subjectName,
+        date: booking.date,
+      }),
+      sendBookingCancelledEmail({
+        toEmail: booking.tutorProfile.user.email,
+        toName: tutorName,
+        otherName: studentName,
+        subjectName: booking.subjectName,
+        date: booking.date,
+      }),
+    ]);
+  }
 
   return NextResponse.json(updated);
 }

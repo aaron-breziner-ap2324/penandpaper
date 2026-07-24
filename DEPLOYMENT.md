@@ -1,74 +1,61 @@
-# Publicar Pen & Paper en penandpaper.com
+# Pen & Paper — estado del deploy
 
-Esta guía es para publicar la app en internet con tu propio dominio. El código ya está
-listo (`npm run build` corre las migraciones automáticamente); estos son los pasos que
-te tocan a vos porque implican crear cuentas o pagar servicios externos.
+## Ya está hecho ✅
 
-## 1. Subir el código a GitHub
+- Código en GitHub: `github.com/aaron-breziner-ap2324/penandpaper`
+- Publicado en Vercel, proyecto `penandpaper-8bnp`
+- Base de datos real en Neon (Postgres), conectada vía `DATABASE_URL` /
+  `DATABASE_URL_UNPOOLED` (esta última es necesaria para que las migraciones
+  no den timeout — Neon usa un "pooler" que no las soporta)
+- `AUTH_SECRET` configurado
+- `RESEND_API_KEY` configurado (envío de emails de notificación)
+- Cada `git push` a `main` redespliega solo
 
+## Variables de entorno necesarias en Vercel
+
+| Variable | De dónde sale |
+|---|---|
+| `DATABASE_URL` | La agrega sola la integración de Neon/Vercel Postgres |
+| `DATABASE_URL_UNPOOLED` | Idem — usada como `directUrl` para migraciones |
+| `AUTH_SECRET` | Generada una vez, no cambia |
+| `RESEND_API_KEY` | De resend.com → API Keys |
+
+## Pendiente: dominio propio
+
+1. Comprá `penandpaper.com` (podés hacerlo desde el propio Vercel:
+   **Settings → Domains → Buy**, o en Namecheap/GoDaddy).
+2. En Vercel: **Settings → Domains → Add** → escribí `penandpaper.com`.
+3. Si lo compraste afuera de Vercel, te va a mostrar los registros DNS
+   (un A y un CNAME para `www`) para cargar en tu registrador.
+4. Esperá que se propague el DNS — Vercel activa HTTPS solo.
+
+## Emails (Resend)
+
+Los emails salen de `onboarding@resend.dev` (dirección de prueba de Resend).
+Mientras no haya un dominio verificado en Resend, **solo se pueden mandar
+emails de verdad a la dirección con la que te registraste en Resend** — a
+cualquier otra dirección Resend devuelve error 422 (no rompe la reserva, solo
+no llega el mail).
+
+Cuando tengas `penandpaper.com`, hay que:
+1. Verificarlo en Resend (**Domains → Add Domain**, agregar los registros DNS
+   que pide).
+2. Cambiar el remitente en `src/lib/email.ts` de `onboarding@resend.dev` a
+   algo como `Pen & Paper <notificaciones@penandpaper.com>`.
+
+## Cómo se maneja el admin
+
+No hay una cuenta admin "de fábrica". El flujo es:
+1. Te registrás normal en `/registro` con tu email y tu contraseña real.
+2. Le pedís a Claude (o corrés un script) que ponga `isAdmin = true` en esa
+   cuenta desde la base de datos.
+3. Cerrás sesión y volvés a entrar — ahí aparece el link "Admin".
+
+## Acceso a la base de datos
+
+Desde la carpeta del proyecto en tu compu:
 ```bash
-cd ~/Developer/red-de-tutores
-git add -A
-git commit -m "Primer commit: Pen & Paper"
+npx prisma studio
 ```
-
-Después creá un repositorio en https://github.com/new (puede ser privado) y conectalo:
-
-```bash
-git remote add origin https://github.com/TU-USUARIO/pen-and-paper.git
-git branch -M main
-git push -u origin main
-```
-
-## 2. Crear cuenta en Vercel y conectar el repo
-
-1. Entrá a https://vercel.com y creá una cuenta (podés usar tu cuenta de GitHub).
-2. "Add New... → Project" y elegí el repositorio que acabás de subir.
-3. Framework: Vercel detecta Next.js automáticamente. No cambies nada todavía, solo
-   dale "Deploy" (va a fallar porque falta la base de datos — es esperado).
-
-## 3. Crear la base de datos (Postgres)
-
-La app usa SQLite en tu compu, pero en internet necesita una base de datos real.
-
-1. En tu proyecto de Vercel: pestaña **Storage → Create Database → Postgres**
-   (usa Neon por debajo, tiene plan gratis).
-2. Cuando la crees, Vercel agrega automáticamente la variable `DATABASE_URL` al
-   proyecto.
-3. Copiá esa `DATABASE_URL` y pasámela — yo cambio el proyecto de SQLite a Postgres
-   y genero las migraciones para esa base (es un paso rápido, pero necesito la URL
-   real para hacerlo).
-
-## 4. Variables de entorno en Vercel
-
-En **Settings → Environment Variables** agregá:
-
-- `DATABASE_URL` → ya la agregó Vercel Postgres solo
-- `AUTH_SECRET` → generá una con `openssl rand -base64 32` en tu terminal y pegala
-
-## 5. Comprar penandpaper.com
-
-Podés comprarlo directo desde Vercel (**Settings → Domains → Buy**) o en un
-registrador como Namecheap/GoDaddy. Si lo comprás afuera de Vercel:
-
-1. En Vercel: **Settings → Domains → Add** → escribí `penandpaper.com`
-2. Vercel te muestra los registros DNS que tenés que cargar en tu registrador
-   (normalmente un registro A y uno CNAME para `www`).
-3. Esperá unos minutos/horas a que se propague el DNS — Vercel te avisa cuando
-   quede activo con HTTPS automático.
-
-## 6. Después del primer deploy real
-
-- Cambiá la contraseña de tu cuenta admin (`aaronbreziner@gmail.com` /
-  `PenPaper2026!`) — no hay pantalla para esto todavía, así que decime y te agrego
-  un endpoint para cambiarla, o la cambio yo por una que me pases.
-- Revisá que el número de WhatsApp (+507 6751-2164) siga siendo el correcto en
-  `src/lib/whatsapp.ts`.
-
-## Qué NO hice yo (porque son acciones tuyas)
-
-- No compré ningún dominio ni creé cuentas en Vercel/GitHub/Neon — esas cuentas y
-  pagos son tuyos.
-- No cambié la base de datos de SQLite a Postgres todavía — lo hago apenas me
-  pases la `DATABASE_URL` real, para no dejarte sin poder probar la app en tu
-  compu mientras tanto.
+Se abre en `http://localhost:5555`, conectado a la base real (la misma que
+usa la app en producción).

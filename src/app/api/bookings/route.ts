@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { bookingSchema } from "@/lib/validation";
 import { priceForDuration } from "@/lib/pricing";
+import { sendBookingCreatedEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -33,7 +34,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Duración inválida" }, { status: 400 });
   }
 
-  const tutorProfile = await prisma.tutorProfile.findUnique({ where: { id: tutorProfileId } });
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: { id: tutorProfileId },
+    include: { user: true },
+  });
   if (!tutorProfile) {
     return NextResponse.json({ error: "Tutor no encontrado" }, { status: 404 });
   }
@@ -43,6 +47,8 @@ export async function POST(req: Request) {
       { status: 403 }
     );
   }
+
+  const student = await prisma.user.findUnique({ where: { id: session.user.id } });
 
   const booking = await prisma.booking.create({
     data: {
@@ -57,6 +63,18 @@ export async function POST(req: Request) {
       notes,
     },
   });
+
+  if (student) {
+    await sendBookingCreatedEmail({
+      tutorEmail: tutorProfile.user.email,
+      tutorName: tutorProfile.user.name,
+      studentName: student.name,
+      subjectName,
+      date: parsedDate,
+      durationMin,
+      price,
+    });
+  }
 
   return NextResponse.json(booking);
 }

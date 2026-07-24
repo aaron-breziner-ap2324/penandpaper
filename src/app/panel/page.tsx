@@ -7,6 +7,7 @@ import StarRating from "@/components/StarRating";
 import StatusBadge from "@/components/StatusBadge";
 import BookingActions from "@/components/BookingActions";
 import BookingModalityInfo from "@/components/BookingModalityInfo";
+import MeetLinkForm from "@/components/MeetLinkForm";
 import { buildBookingWhatsAppLink } from "@/lib/whatsapp";
 import { tutorPayout } from "@/lib/pricing";
 
@@ -102,6 +103,9 @@ export default async function PanelPage() {
                       meetLink={b.meetLink}
                     />
                   </div>
+                  {b.status === "CONFIRMED" && b.modality === "VIRTUAL" && (
+                    <MeetLinkForm bookingId={b.id} initialLink={b.meetLink} />
+                  )}
                   {b.notes && <p className="mt-1 text-sm text-ink/50">&quot;{b.notes}&quot;</p>}
                   {b.status === "PENDING" && (
                     <p className="mt-1 text-xs text-ink/50">Esperando que Aaron confirme el pago</p>
